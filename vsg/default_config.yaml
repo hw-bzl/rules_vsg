@@ -1,0 +1,10 @@
+# Default VSG configuration shipped with rules_vsg.
+#
+# This file is intentionally minimal — it does NOT enable or override any
+# style rules. Downstream consumers should provide their own configuration and
+# point the //vsg:config label_flag at it:
+#
+#   build --@rules_vsg//vsg:config=//path/to:my_vsg.yaml
+#
+# Configuration reference: https://vhdl-style-guide.readthedocs.io/en/latest/configuring.html
+rule: {}

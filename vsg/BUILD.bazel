@@ -1,0 +1,33 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//vsg/private:vsg_toolchain.bzl", "current_vsg_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "default_config.yaml",
+    "defs.bzl",
+    "vsg_aspect.bzl",
+    "vsg_fixer.bzl",
+    "vsg_test.bzl",
+    "vsg_toolchain.bzl",
+])
+
+label_flag(
+    name = "config",
+    build_setting_default = ":default_config.yaml",
+)
+
+toolchain_type(
+    name = "toolchain_type",
+)
+
+current_vsg_toolchain(
+    name = "current_vsg_toolchain",
+    tags = ["manual"],
+)
+
+bzl_library(
+    name = "bzl_lib",
+    srcs = glob(["*.bzl"]),
+    deps = ["//vsg/private:bzl_lib"],
+)

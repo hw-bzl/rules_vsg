@@ -1,0 +1,14 @@
+load("@rules_vsg//vsg:defs.bzl", "vsg_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+vsg_toolchain(
+    name = "vsg_toolchain_impl",
+    vsg = "@vsg_pip_deps//vsg",
+)
+
+toolchain(
+    name = "vsg_toolchain",
+    toolchain = ":vsg_toolchain_impl",
+    toolchain_type = "@rules_vsg//vsg:toolchain_type",
+)

@@ -1,0 +1,38 @@
+"""rules_vsg simple example consumer.
+
+A standalone Bazel module that depends on `rules_vsg` via a `local_path_override`
+pointing at the repository root. Doubles as the BCR presubmit test module so any
+incoming version change is validated against an end-to-end consumer before
+publishing.
+"""
+
+module(
+    name = "rules_vsg_examples_simple",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_vhdl", version = "0.1.2")
+bazel_dep(name = "rules_venv", version = "0.17.0")
+bazel_dep(name = "rules_vsg", version = "0.1.0")
+local_path_override(
+    module_name = "rules_vsg",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_req_compile", version = "1.1.2")
+
+requirements = use_extension("@rules_req_compile//extensions:python.bzl", "requirements")
+requirements.parse(
+    name = "pip_deps",
+    requirements_locks = {
+        "//requirements:requirements_linux_aarch64.txt": "//requirements:linux_aarch64",
+        "//requirements:requirements_linux_x86_64.txt": "//requirements:linux_x86_64",
+        "//requirements:requirements_macos_aarch64.txt": "//requirements:macos_aarch64",
+        "//requirements:requirements_windows_x86_64.txt": "//requirements:windows_x86_64",
+    },
+)
+use_repo(requirements, "pip_deps")
+
+register_toolchains("//toolchains:vsg_toolchain")

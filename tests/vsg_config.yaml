@@ -1,0 +1,5 @@
+# Test VSG configuration for the smoke-test library.
+# See https://vhdl-style-guide.readthedocs.io/en/latest/configuring.html
+rule:
+  global:
+    indent_size: 2

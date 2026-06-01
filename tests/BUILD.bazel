@@ -1,0 +1,25 @@
+load("@rules_vhdl//vhdl:defs.bzl", "vhdl_library")
+load("//vsg:defs.bzl", "vsg_fixer", "vsg_test")
+
+# Trivial VHDL library used to smoke-test vsg_test, vsg_fixer, and vsg_aspect.
+vhdl_library(
+    name = "math_pkg",
+    srcs = [
+        "src/adder.vhd",
+        "src/math_pkg.vhd",
+    ],
+    library = "libmath",
+    standard = "2008",
+)
+
+vsg_test(
+    name = "math_pkg_vsg_test",
+    config = ":vsg_config.yaml",
+    target = ":math_pkg",
+)
+
+vsg_fixer(
+    name = "math_pkg_vsg_fix",
+    config = ":vsg_config.yaml",
+    target = ":math_pkg",
+)

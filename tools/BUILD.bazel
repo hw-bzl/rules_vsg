@@ -1,0 +1,1 @@
+# Dev-only Bazel infrastructure for rules_vsg. NOT visible to downstream consumers.

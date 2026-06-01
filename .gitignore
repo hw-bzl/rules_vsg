@@ -1,0 +1,8 @@
+# Git ignore patterns
+
+bazel-*
+user.bazelrc
+/*venv*/
+.idea/
+.vscode/
+MODULE.bazel.lock

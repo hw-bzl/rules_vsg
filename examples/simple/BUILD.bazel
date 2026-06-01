@@ -1,0 +1,52 @@
+load("@rules_vhdl//vhdl:defs.bzl", "vhdl_library")
+load("@rules_vsg//vsg:defs.bzl", "vsg_fixer", "vsg_test")
+
+# A clean VHDL library: passes vsg_test out of the box.
+vhdl_library(
+    name = "math_pkg",
+    srcs = [
+        "src/adder.vhd",
+        "src/math_pkg.vhd",
+    ],
+    library = "libmath",
+    standard = "2008",
+)
+
+vsg_test(
+    name = "math_pkg_vsg_test",
+    config = ":vsg_config.yaml",
+    target = ":math_pkg",
+)
+
+vsg_fixer(
+    name = "math_pkg_vsg_fix",
+    config = ":vsg_config.yaml",
+    target = ":math_pkg",
+)
+
+# Deliberately unformatted library — useful for demonstrating the fixer. Tagged
+# `manual` so it is excluded from the default `bazel test //...` sweep and from
+# the `--config=vsg` aspect; run with
+# `bazel run //:unformatted_vsg_fix` to see the fixer in action.
+vhdl_library(
+    name = "unformatted",
+    srcs = ["src/unformatted.vhd"],
+    tags = [
+        "manual",
+        "no_vsg",
+    ],
+)
+
+vsg_test(
+    name = "unformatted_vsg_test",
+    config = ":vsg_config.yaml",
+    tags = ["manual"],
+    target = ":unformatted",
+)
+
+vsg_fixer(
+    name = "unformatted_vsg_fix",
+    config = ":vsg_config.yaml",
+    tags = ["manual"],
+    target = ":unformatted",
+)
