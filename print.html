@@ -167,10 +167,13 @@
 <li><strong><a href="./vsg_aspect.html"><code>vsg_aspect</code></a></strong> — an aspect that runs VSG as a side effect of <code>bazel build</code>, opt-in via <code>.bazelrc</code>.</li>
 <li><strong><a href="./vsg_toolchain.html"><code>vsg_toolchain</code></a></strong> — wraps the <code>vsg</code> pip package as a Bazel toolchain.</li>
 </ul>
-<p>Rule API details are generated from the Starlark sources in the sections linked from <a href="./SUMMARY.html">Summary</a>.</p>
-<h2 id="quick-start"><a class="header" href="#quick-start">Quick start</a></h2>
-<p>Add to <code>MODULE.bazel</code>:</p>
-<pre><code class="language-python">bazel_dep(name = "rules_vsg", version = "{version}")
+<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
+<p><code>rules_vsg</code> ships with <strong>no</strong> registered toolchain. VSG is a pip-distributed Python tool and you
+supply it as a <code>py_library</code> via whichever pip integration you prefer.</p>
+<p>The example below uses <a href="https://github.com/periareon/req-compile"><code>rules_req_compile</code></a>, but anything
+that produces a <code>py_library</code> exposing the <code>vsg</code> package will work.</p>
+<h3 id="modulebazel"><a class="header" href="#modulebazel">MODULE.bazel</a></h3>
+<pre><code class="language-python">bazel_dep(name = "rules_vsg",  version = "{version}")
 bazel_dep(name = "rules_vhdl", version = "0.1.2")
 bazel_dep(name = "rules_venv", version = "0.17.0")
 bazel_dep(name = "rules_req_compile", version = "1.1.2")
@@ -186,7 +189,65 @@ use_repo(requirements, "pip_deps")
 
 register_toolchains("//tools/toolchains:vsg_toolchain")
 </code></pre>
-<p>Load rules from <code>@rules_vsg//vsg:defs.bzl</code> or from the individual <code>.bzl</code> files documented in this book.</p>
+<h3 id="toolstoolchainsbuildbazel"><a class="header" href="#toolstoolchainsbuildbazel">//tools/toolchains/BUILD.bazel</a></h3>
+<pre><code class="language-python">load("@rules_vsg//vsg:defs.bzl", "vsg_toolchain")
+
+vsg_toolchain(
+    name = "vsg_toolchain_impl",
+    vsg = "@pip_deps//vsg",
+)
+
+toolchain(
+    name = "vsg_toolchain",
+    toolchain = ":vsg_toolchain_impl",
+    toolchain_type = "@rules_vsg//vsg:toolchain_type",
+)
+</code></pre>
+<h3 id="toolsrequirementsrequirementsin"><a class="header" href="#toolsrequirementsrequirementsin">//tools/requirements/requirements.in</a></h3>
+<pre><code>vsg
+</code></pre>
+<p>Populate the lockfile with:</p>
+<pre><code class="language-bash">bazel run //tools/requirements:requirements.linux_x86_64.update
+</code></pre>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<pre><code class="language-python">load("@rules_vhdl//vhdl:defs.bzl", "vhdl_library")
+load("@rules_vsg//vsg:defs.bzl", "vsg_fixer", "vsg_test")
+
+vhdl_library(
+    name = "math_pkg",
+    srcs = ["math_pkg.vhd", "adder.vhd"],
+)
+
+vsg_test(
+    name = "math_pkg_vsg_test",
+    target = ":math_pkg",
+    config = ":vsg_config.yaml",
+)
+
+vsg_fixer(
+    name = "math_pkg_vsg_fix",
+    target = ":math_pkg",
+    config = ":vsg_config.yaml",
+)
+</code></pre>
+<p>Run:</p>
+<ul>
+<li><code>bazel test //:math_pkg_vsg_test</code> — fails on violations</li>
+<li><code>bazel run //:math_pkg_vsg_fix</code> — applies <code>vsg --fix</code> in place to workspace files</li>
+</ul>
+<p><code>vsg_test</code> always emits JUnit XML at <code>$XML_OUTPUT_FILE</code> when running under <code>bazel test</code>, so test
+results integrate with the standard Bazel test report. <code>vsg_fixer</code> rejects external-repo sources at
+analysis time (you cannot fix files outside the calling workspace).</p>
+<h2 id="aspect-mode"><a class="header" href="#aspect-mode">Aspect mode</a></h2>
+<p>To run VSG on every <code>vhdl_library</code> in the workspace as part of <code>bazel build</code>, add to <code>.bazelrc</code>:</p>
+<pre><code class="language-text">build:vsg --aspects=@rules_vsg//vsg:vsg_aspect.bzl%vsg_aspect
+build:vsg --output_groups=+vsg_checks
+build:vsg --@rules_vsg//vsg:config=//:vsg_config.yaml
+</code></pre>
+<p>Then run with <code>bazel build --config=vsg //...</code>. Tag a target with <code>no_vsg</code> (or <code>nolint</code>,
+<code>noformat</code>) to opt out.</p>
+<h2 id="rule-reference"><a class="header" href="#rule-reference">Rule reference</a></h2>
+<p>Generated reference for each rule is in the <a href="./rules.html">Rules</a> section.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rules"><a class="header" href="#rules">Rules</a></h1>
 <ul>
 <li><a href="./vsg_test.html">vsg_test</a></li>
